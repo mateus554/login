@@ -1,0 +1,72 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+
+const Cell_size = 20;
+const Grid_size = 15;
+const initial_snake = [{ x: 7, y: 7 }];
+const initial_direction = { x: 0, y: -1 };
+
+export default function SnakeGame() {
+  const [snake, setSnake] = useState(initial_snake);
+  const [direction, setDirection] = useState(initial_direction);
+  const [isGameOver, setIsGameOver] = useState(false);
+  const moveInterval = useRef(null);
+
+  function moveSnake() {
+    setSnake(prev => {
+      const newHead = {
+        x: prev[0].x + direction.x,
+        y: prev[0].y + direction.y,
+      };
+
+      if (
+        newHead.x < 0 || newHead.x >= Grid_size ||
+        newHead.y < 0 || newHead.y >= Grid_size ||
+        prev.some(segment => segment.x === newHead.x && segment.y === newHead.y)
+      ) {
+        setIsGameOver(true);
+        clearInterval(moveInterval.current);
+        Alert.alert('fim de jogo', 'você bateu');
+        return prev;
+      }
+
+      const newSnake = [newHead, ...prev];
+      newSnake.pop();
+      return newSnake;
+    });
+  }
+
+  useEffect(() => {
+    moveInterval.current = setInterval(() => {
+      if (!isGameOver) moveSnake();
+    }, 200);
+
+    return () => clearInterval(moveInterval.current);
+  }, [direction]);
+
+  const renderCell = (x, y) => {
+    const isSnake = snake.some(cell => cell.x === x && cell.y === y);
+    return (
+      <View
+        key={`${x}-${y}`}
+        style={[styles.cell, isSnake && styles.snake]}
+      />
+    );
+  };
+
+  const renderGrid = () => {
+    let rows = [];
+
+    for (let y = 0; y < Grid_size; y++) {
+      let row = [];
+      for (let x = 0; x < Grid_size; x++) {
+        rowCells.push(renderCell(x, y));
+      }
+      rows.push(
+        <View key={y} style={styles.row}
+        </View>
+      );
+    }
+
+    return rows;
+};
